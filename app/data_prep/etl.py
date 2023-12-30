@@ -8,12 +8,13 @@ import time
 from datetime import datetime
 from datetime import timedelta
 import math
+from app.config import INPUT_PATH
 
 
 # Automated download of all CSV files from www.football-data.co.uk
 def get_raw_historical_epl_data():
     df_raw = pd.DataFrame()
-    for season in ['1112', '1213', '1314', '1415', '1516', '1617', '1718', '1819', '1920', '2021', '2122', '2223']:
+    for season in ['1112', '1213', '1314', '1415', '1516', '1617', '1718', '1819', '1920', '2021', '2122', '2223', '2324']:
         df_season = pd.read_csv("https://www.football-data.co.uk/mmz4281/" + season + "/E0.csv")
         df_season["Season"] = "20" + season[0:2] + "/20" + season[2:4] 
         df_raw = pd.concat([df_raw, df_season]).reset_index(drop = True)
@@ -594,8 +595,13 @@ def clean_augmented_epl_data():
     return(df_out)
 
 
+# Push raw data to a csv file
+def push_preproccessed_historical_data_to_csv(df):
+    df.to_csv(str(INPUT_PATH) + "/epl_data.csv", encoding = "utf-8", index = False)
+
+
 # Push raw data to PostgreSQL database
-def push_preproccessed_historical_data_to_db(connection_params, schema_name, table_name):
+def push_preproccessed_historical_data_to_db(df, connection_params, schema_name, table_name):
     conn = psycopg2.connect(
         host = connection_params["host"],
         database = connection_params["database"],
@@ -603,7 +609,6 @@ def push_preproccessed_historical_data_to_db(connection_params, schema_name, tab
         password = connection_params["password"]
     )
     engine = create_engine('postgresql://' + connection_params["user"] + ':' + connection_params["password"] + '@' + connection_params["host"] + ':5432/' + connection_params["database"])
-    df = clean_augmented_epl_data()
     conn.autocommit = True
     cursor = conn.cursor()
     cursor.execute(f"DROP TABLE IF EXISTS {schema_name}.{table_name}")
@@ -655,13 +660,22 @@ def push_preproccessed_historical_data_to_db(connection_params, schema_name, tab
 
 
 # Execute the pipeline
-def run_etl_pipeline():
-    connection_params = json.load(
-        open("/Users/callanroff/Desktop/Acc. Keyzzz/postgresql_conn_params.json", "r")
-    )
-    push_preproccessed_historical_data_to_db(
-        connection_params = connection_params, 
-        schema_name="web_scraping", 
-        table_name="epl_data"
-    )
+def run_etl_pipeline(to_csv = True, to_postgre_db = False):
+    df = clean_augmented_epl_data()
+    if to_csv == True:
+        push_preproccessed_historical_data_to_csv(df = df)
+    else:
+        pass
+    if to_postgre_db == True:
+        connection_params = json.load(
+            open("/Users/callanroff/Desktop/Acc. Keyzzz/postgresql_conn_params.json", "r")
+        )
+        push_preproccessed_historical_data_to_db(
+            df = df,
+            connection_params = connection_params, 
+            schema_name="web_scraping", 
+            table_name="epl_data"
+        )
+    else:
+        pass
 
