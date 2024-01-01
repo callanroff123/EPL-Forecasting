@@ -36,11 +36,15 @@ def get_predictions(home_team, away_team):
 
 if __name__ == "__main__":
     print("Hello human! I am an AI which predicts the result of an upcoming EPL fixture.")
+    run_mod = input("Do you want to refresh the model (y/n)? Note 'y' for this option may take 5-10 minutes.")
+    if run_mod == "y":
+        print("Executing training pipeline...")
+        training_pipeline()
+        print("Model successfully updated!")
+    elif run_mod == "n":
+        pass
+    else:
+        input("Invalid input. Only 'y' for yes or 'n' for no allowed.")
     home_team = input("Please specify the home team of this fixture: ")
     away_team = input("Please specify the away team of this fixture: ")
     get_predictions(home_team = home_team, away_team = away_team)
-
-
-get_prediction_data("Fulham", "Tottenham")
-
-
