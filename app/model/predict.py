@@ -18,15 +18,22 @@ import pickle
 import os
 import uuid
 from app.config import INPUT_PATH, OUTPUT_PATH, MODEL_PATH, X_COLS
+from app.data_prep.prediction_data import get_prediction_data
 
 
 # Fit the parameter-tuned XGBoost regressor on new data
-def xgboost_preds(new_df, new_X, X_cols):
+def xgboost_preds(home_team, away_team):
     with open(str(MODEL_PATH) + '/model.pkl', 'rb') as file:  
         model = pickle.load(file)
-    y_forecast = model.predict(new_X)
-    new_df["RESULT_PREDICTION"] = y_forecast
-    return(new_df)
+    with open(str(MODEL_PATH) + '/scaler.pkl', 'rb') as file:  
+        scaler = pickle.load(file)
+    new_X = get_prediction_data(home_team = home_team, away_team = away_team)
+    new_X_scaled = pd.DataFrame(
+        scaler.transform(new_X),
+        columns = [col + "_SCALED" for col in new_X.columns]
+    )
+    y_forecast = model.predict(new_X_scaled)
+    return(y_forecast)
 
 
 # Push forecasts to output file path as csv file

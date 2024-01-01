@@ -539,8 +539,7 @@ def epl_feature_engineering_4():
 
 
 # Clean up of data post feature engineering
-def clean_augmented_epl_data():
-    df = epl_feature_engineering_4()
+def clean_augmented_epl_data(df, refine = False):
     df["DIFF_HA_LAST_5_HOME_WINS"] = df["HOME_TEAM_LAST_5_HOME_WINS"] - df["AWAY_TEAM_LAST_5_HOME_WINS"]
     df["DIFF_HA_LAST_5_HOME_DRAWS"] = df["HOME_TEAM_LAST_5_HOME_DRAWS"] - df["AWAY_TEAM_LAST_5_HOME_DRAWS"]
     df["DIFF_HA_LAST_5_HOME_LOSSES"] = df["HOME_TEAM_LAST_5_HOME_LOSSES"] - df["AWAY_TEAM_LAST_5_HOME_LOSSES"]
@@ -554,39 +553,70 @@ def clean_augmented_epl_data():
     df["DIFF_HA_PTS_THIS_SEASON"] = df["HOME_TEAM_PTS"] - df["AWAY_TEAM_PTS"]
     df["DIFF_HA_CURRENT_POSITION"] = df["HOME_TEAM_POSITION"] - df["AWAY_TEAM_POSITION"]
     df["TOT_GOALS"] = df["FTHG"] + df["FTAG"]
-    df_final = df[[
-        "HOME_TEAM",
-        "AWAY_TEAM",
-        "SEASON",
-        "DATE",
-        "REFEREE",
-        "DIFF_HA_LAST_5_HOME_WINS",
-        "DIFF_HA_LAST_5_HOME_DRAWS",
-        "DIFF_HA_LAST_5_HOME_LOSSES",
-        "DIFF_HA_LAST_5_AWAY_WINS",
-        "DIFF_HA_LAST_5_AWAY_DRAWS",
-        "DIFF_HA_LAST_5_AWAY_LOSSES",
-        "DIFF_HA_LAST_5_WINS",
-        "DIFF_HA_LAST_5_DRAWS", 
-        "DIFF_HA_LAST_5_LOSSES",
-        "DIFF_HA_GD_LAST_5",
-        "DIFF_HA_PTS_THIS_SEASON",
-        "DIFF_HA_CURRENT_POSITION",
-        "DIFF_HA_SHOTS_LAST_5",
-        "DIFF_HA_SHOTS_ON_TARGET_LAST_5",
-        "HOME_TEAM_BIG_6_FLAG",
-        "AWAY_TEAM_BIG_6_FLAG",
-        "HOME_TEAM_PROMOTED_FROM_LAST_SEASON_FLAG",
-        "AWAY_TEAM_PROMOTED_FROM_LAST_SEASON_FLAG",
-        "SEASON_MONTH_NUM",
-        "HOME_TEAM_GAME_NUM",
-        "AWAY_TEAM_GAME_NUM",
-        "RESULT",
-        "FTHG",
-        "FTAG",
-        "DIFF_HA_FT_GOALS",
-        "TOT_GOALS"
-    ]]
+    if refine == True:
+        df_final = df[[
+            "HOME_TEAM",
+            "AWAY_TEAM",
+            "SEASON",
+            "DATE",
+            "REFEREE",
+            "HOME_TEAM_LAST_5_HOME_WINS",
+            "AWAY_TEAM_LAST_5_HOME_WINS",
+            "HOME_TEAM_LAST_5_HOME_DRAWS",
+            "AWAY_TEAM_LAST_5_HOME_DRAWS",
+            "HOME_TEAM_LAST_5_HOME_LOSSES",
+            "AWAY_TEAM_LAST_5_HOME_LOSSES",
+            "HOME_TEAM_LAST_5_AWAY_WINS",
+            "AWAY_TEAM_LAST_5_AWAY_WINS",
+            "HOME_TEAM_LAST_5_AWAY_DRAWS",
+            "AWAY_TEAM_LAST_5_AWAY_DRAWS",
+            "HOME_TEAM_LAST_5_AWAY_LOSSES",
+            "AWAY_TEAM_LAST_5_AWAY_LOSSES",
+            "HOME_TEAM_WINS_LAST_5",
+            "AWAY_TEAM_WINS_LAST_5",
+            "HOME_TEAM_DRAWS_LAST_5",
+            "AWAY_TEAM_DRAWS_LAST_5",
+            "HOME_TEAM_LOSSES_LAST_5",
+            "AWAY_TEAM_LOSSES_LAST_5",
+            "HOME_TEAM_GD_LAST_5",
+            "AWAY_TEAM_GD_LAST_5",
+            "HOME_TEAM_PTS",
+            "AWAY_TEAM_PTS",
+            "HOME_TEAM_POSITION",
+            "AWAY_TEAM_POSITION",
+            "HOME_TEAM_SHOTS_LAST_5",
+            "AWAY_TEAM_SHOTS_LAST_5",
+            "HOME_TEAM_SHOTS_ON_TARGET_LAST_5",
+            "AWAY_TEAM_SHOTS_ON_TARGET_LAST_5",
+            "DIFF_HA_LAST_5_HOME_WINS",
+            "DIFF_HA_LAST_5_HOME_DRAWS",
+            "DIFF_HA_LAST_5_HOME_LOSSES",
+            "DIFF_HA_LAST_5_AWAY_WINS",
+            "DIFF_HA_LAST_5_AWAY_DRAWS",
+            "DIFF_HA_LAST_5_AWAY_LOSSES",
+            "DIFF_HA_LAST_5_WINS",
+            "DIFF_HA_LAST_5_DRAWS", 
+            "DIFF_HA_LAST_5_LOSSES",
+            "DIFF_HA_GD_LAST_5",
+            "DIFF_HA_PTS_THIS_SEASON",
+            "DIFF_HA_CURRENT_POSITION",
+            "DIFF_HA_SHOTS_LAST_5",
+            "DIFF_HA_SHOTS_ON_TARGET_LAST_5",
+            "HOME_TEAM_BIG_6_FLAG",
+            "AWAY_TEAM_BIG_6_FLAG",
+            "HOME_TEAM_PROMOTED_FROM_LAST_SEASON_FLAG",
+            "AWAY_TEAM_PROMOTED_FROM_LAST_SEASON_FLAG",
+            "SEASON_MONTH_NUM",
+            "HOME_TEAM_GAME_NUM",
+            "AWAY_TEAM_GAME_NUM",
+            "RESULT",
+            "FTHG",
+            "FTAG",
+            "DIFF_HA_FT_GOALS",
+            "TOT_GOALS"
+        ]]
+    else:
+        df_final = df
     df_out = df_final[
         (df_final["HOME_TEAM_GAME_NUM"] >= 12) &
         (df_final["AWAY_TEAM_GAME_NUM"] >= 12) &
@@ -596,8 +626,8 @@ def clean_augmented_epl_data():
 
 
 # Push raw data to a csv file
-def push_preproccessed_historical_data_to_csv(df):
-    df.to_csv(str(INPUT_PATH) + "/epl_data.csv", encoding = "utf-8", index = False)
+def push_preproccessed_historical_data_to_csv(df, filename):
+    df.to_csv(str(INPUT_PATH) + "/" + filename, encoding = "utf-8", index = False)
 
 
 # Push raw data to PostgreSQL database
@@ -620,6 +650,30 @@ def push_preproccessed_historical_data_to_db(df, connection_params, schema_name,
                 "SEASON" VARCHAR(100),
                 DATE DATE,
                 REFEREE VARCHAR(100),
+                "HOME_TEAM_LAST_5_HOME_WINS" INT,
+                "AWAY_TEAM_LAST_5_HOME_WINS" INT,
+                "HOME_TEAM_LAST_5_HOME_DRAWS" INT,
+                "AWAY_TEAM_LAST_5_HOME_DRAWS" INT,
+                "HOME_TEAM_LAST_5_HOME_LOSSES" INT,
+                "AWAY_TEAM_LAST_5_HOME_LOSSES" INT,
+                "HOME_TEAM_LAST_5_AWAY_WINS" INT,
+                "AWAY_TEAM_LAST_5_AWAY_WINS" INT,
+                "HOME_TEAM_LAST_5_AWAY_DRAWS" INT,
+                "AWAY_TEAM_LAST_5_AWAY_DRAWS" INT,
+                "HOME_TEAM_LAST_5_AWAY_LOSSES" INT,
+                "AWAY_TEAM_LAST_5_AWAY_LOSSES" INT,
+                "HOME_TEAM_WINS_LAST_5" INT,
+                "AWAY_TEAM_WINS_LAST_5" INT,
+                "HOME_TEAM_DRAWS_LAST_5" INT,
+                "AWAY_TEAM_DRAWS_LAST_5" INT,
+                "HOME_TEAM_LOSSES_LAST_5" INT,
+                "AWAY_TEAM_LOSSES_LAST_5" INT,
+                "HOME_TEAM_GD_LAST_5" INT,
+                "AWAY_TEAM_GD_LAST_5" INT,
+                "HOME_TEAM_PTS" INT,
+                "AWAY_TEAM_PTS" INT,
+                "HOME_TEAM_POSITION" INT,
+                "AWAY_TEAM_POSITION" INT,
                 DIFF_HA_LAST_5_HOME_WINS INT,
                 DIFF_HA_LAST_5_HOME_DRAWS INT,
                 DIFF_HA_LAST_5_HOME_LOSSES INT,
@@ -661,9 +715,10 @@ def push_preproccessed_historical_data_to_db(df, connection_params, schema_name,
 
 # Execute the pipeline
 def run_etl_pipeline(to_csv = True, to_postgre_db = False):
-    df = clean_augmented_epl_data()
+    df_raw = epl_feature_engineering_4()
+    df = clean_augmented_epl_data(df = df_raw, refine = True)
     if to_csv == True:
-        push_preproccessed_historical_data_to_csv(df = df)
+        push_preproccessed_historical_data_to_csv(df = df, filename = "epl_data.csv")
     else:
         pass
     if to_postgre_db == True:
