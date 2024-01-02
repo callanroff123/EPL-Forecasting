@@ -27,7 +27,7 @@ import json
 import pickle
 import os
 import uuid
-from app.config import INPUT_PATH, MODEL_PATH, X_COLS
+from src.config import INPUT_PATH, MODEL_PATH, X_COLS
 
 
 # Read in data from the ETL step

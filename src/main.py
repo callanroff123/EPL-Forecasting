@@ -16,10 +16,10 @@ warnings.filterwarnings("ignore", category = Warning)
 
 
 # Import libraries/modules
-from app.data_prep.etl import run_etl_pipeline
-from app.model.train import fetch_epl_data, train_and_save_standard_scaler, save_best_xgboost_model
-from app.model.predict import xgboost_preds
-from app.config import X_COLS
+from src.data_prep.etl import run_etl_pipeline
+from src.model.train import fetch_epl_data, train_and_save_standard_scaler, save_best_xgboost_model
+from src.model.predict import xgboost_preds
+from src.config import X_COLS
 
 
 # Function executing each step in the end-to-end pipeline

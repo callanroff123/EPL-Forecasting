@@ -17,8 +17,8 @@ import json
 import pickle
 import os
 import uuid
-from app.config import INPUT_PATH, OUTPUT_PATH, MODEL_PATH, X_COLS
-from app.data_prep.prediction_data import get_prediction_data
+from src.config import INPUT_PATH, MODEL_PATH, X_COLS
+from src.data_prep.prediction_data import get_prediction_data
 
 
 # Fit the parameter-tuned XGBoost regressor on new data

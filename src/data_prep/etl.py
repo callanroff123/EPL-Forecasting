@@ -8,7 +8,7 @@ import time
 from datetime import datetime
 from datetime import timedelta
 import math
-from app.config import INPUT_PATH
+from src.config import INPUT_PATH
 
 
 # Automated download of all CSV files from www.football-data.co.uk

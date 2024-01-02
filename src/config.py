@@ -5,9 +5,8 @@ from pathlib import Path
 
 # Specify path defaults
 APP_PATH = Path(os.environ["PYTHONPATH"])
-INPUT_PATH = APP_PATH / "input/"
-OUTPUT_PATH = APP_PATH / "output/"
-MODEL_PATH = APP_PATH / "app/model"
+INPUT_PATH = APP_PATH / "input_data/"
+MODEL_PATH = APP_PATH / "models"
 
 
 # Email
