@@ -24,8 +24,10 @@ from src.config import X_COLS
 
 # Function executing each step in the end-to-end pipeline
 def training_pipeline():
+    print("Running ETL pipeline...")
     run_etl_pipeline()
     df = fetch_epl_data()
+    print("Running ML training pipeline...")
     train_and_save_standard_scaler(df = df, X_cols = X_COLS)
     save_best_xgboost_model(df = df, X_cols = X_COLS)
 
@@ -74,4 +76,5 @@ if __name__ == "__main__":
         elif again == "y":
             pass
         else:
-            input("Only 'y' for yes or 'n' for no allowed")
+            print("Only 'y' for yes or 'n' for no allowed")
+    print("See ya later human!")
