@@ -116,4 +116,24 @@ def get_prediction_data(home_team, away_team):
             new_df[f"DIFF_HA_LAST_5_{z}"] = new_df[f"LAST_5_{z}_x"] - new_df[f"LAST_5_{z}_y"]
             for y in ["HOME", "AWAY"]:
                 new_df[f"DIFF_HA_LAST_5_{y}_{z}"] = new_df[f"LAST_5_{y}_{z}_x"] - new_df[f"LAST_5_{y}_{z}_y"]
+        df_h2h = df[
+            (df["HOME_TEAM"].isin([home_team, away_team])) &
+            (df["AWAY_TEAM"].isin([home_team, away_team]))
+        ].sort_values(by = "DATE", ascending = False).reset_index(drop = True).iloc[[0]][[
+            "HOME_TEAM",
+            "AWAY_TEAM",
+            "RESULT",
+            "FTHG",
+            "FTAG",
+            "DIFF_HA_H2H_PTS",
+            "DIFF_HA_H2H_GOALS"
+        ]]
+        df_h2h["HOME_PTS"] = df_h2h["RESULT"].apply(
+            lambda x: 0 if x == "Home Loss" else (1 if x == "Draw" else 3)
+        )
+        df_h2h["AWAY_PTS"] = df_h2h["RESULT"].apply(
+            lambda x: 3 if x == "Home Loss" else (1 if x == "Draw" else 0)
+        )
+        new_df["DIFF_HA_H2H_PTS"] = (df_h2h["HOME_PTS"][0] - df_h2h["AWAY_PTS"][0]) + df_h2h["DIFF_HA_H2H_PTS"][0] if home_team == df_h2h["HOME_TEAM"][0] else -((df_h2h["HOME_PTS"][0] - df_h2h["AWAY_PTS"][0]) + df_h2h["DIFF_HA_H2H_PTS"][0])
+        new_df["DIFF_HA_H2H_GOALS"] = (df_h2h["FTHG"][0] - df_h2h["FTAG"][0]) + df_h2h["DIFF_HA_H2H_GOALS"][0] if home_team == df_h2h["HOME_TEAM"][0] else -((df_h2h["FTHG"][0] - df_h2h["FTAG"][0]) + df_h2h["DIFF_HA_H2H_GOALS"][0])
     return(new_df[X_COLS])
