@@ -119,12 +119,9 @@ def xgboost_grid_search(df, X_cols, target = "base_result"):
         model = XGBClassifier(
             objective = "multi:softprob", 
             num_classes = 3, 
+            class_weight = 'balanced',
             n_estimators = 250,
             colsample_bytree = 1
-        )
-        sample_weights = compute_sample_weight(
-            class_weight = 'balanced',
-            y = y_train 
         )
         grid = GridSearchCV(
             estimator = model,
@@ -133,7 +130,7 @@ def xgboost_grid_search(df, X_cols, target = "base_result"):
             n_jobs = 2,
             scoring = "accuracy"
         )
-        grid.fit(X_train, y_train, sample_weight = sample_weights)
+        grid.fit(X_train, y_train)
     else:
         model = XGBClassifier(
             objective = "binary:logistic",
@@ -170,17 +167,14 @@ def save_best_xgboost_model(df, X_cols, target = "base_result"):
         model = XGBClassifier(
             objective = "multi:softprob", 
             num_classes = 3,
+            class_weight = 'balanced',
             n_jobs = 3,
             colsample_bytree = 1,
             learning_rate = hyperparameters["learning_rate"],
             n_estimators = 250,
             max_depth = hyperparameters["max_depth"]
         )
-        sample_weights = compute_sample_weight(
-            class_weight = 'balanced',
-            y = y
-        )
-        model.fit(X, y, sample_weight = sample_weights)
+        model.fit(X, y)
     else:
         model = XGBClassifier(
             objective = "binary:logistic",
