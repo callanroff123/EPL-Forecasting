@@ -538,6 +538,106 @@ def epl_feature_engineering_4():
     return(df)
 
 
+# More feature engineering: Head-to-head record current season plus last
+def epl_feature_engineering_5():
+    df = epl_feature_engineering_4()
+    df1 = df[[
+        "HOME_TEAM", 
+        "AWAY_TEAM", 
+        "SEASON", 
+        "DATE", 
+        "RESULT",
+        "FTHG",
+        "FTAG"
+    ]]
+    df1["HOME_PTS"] = df1["RESULT"].apply(
+        lambda x: 3 if x == "Home Win" else (1 if x == "Draw" else 0)
+    )
+    df1["AWAY_PTS"] = df1["RESULT"].apply(
+        lambda x: 0 if x == "Home Win" else (1 if x == "Draw" else 3)
+    )
+    df1["FIXTURE_ALPH_ORD"] = [
+        min([df1["HOME_TEAM"][i], df1["AWAY_TEAM"][i]]) + " | " + max([df1["HOME_TEAM"][i], df1["AWAY_TEAM"][i]]) for i in range(len(df1))
+    ]
+    df1 = df1.rename(columns = {
+        "FTHG": "HOME_GOALS",
+        "FTAG": "AWAY_GOALS"
+    })
+    seasons = df1[["SEASON"]].drop_duplicates().sort_values(by = "SEASON").reset_index(drop = True)
+    seasons["LAST_SEASON"] = seasons["SEASON"].shift(1).fillna("2011/2012")
+    df2 = pd.merge(
+        left = df1,
+        right = df1,
+        on = "FIXTURE_ALPH_ORD",
+        how = "inner"
+    )
+    df2 = pd.merge(
+        left = df2,
+        right = seasons,
+        left_on = "SEASON_x",
+        right_on = "SEASON",
+        how = "inner"
+    )
+    df3 = df2[
+        (df2["DATE_x"] > df2["DATE_y"]) &
+        (df2["LAST_SEASON"] <= df2["SEASON_y"])
+    ].reset_index(drop = True)
+    for qty in ["PTS", "GOALS"]:
+        df3[f"HOME_{qty}_y_NEW"] = [
+            df3[f"HOME_{qty}_y"][i] if df3["HOME_TEAM_x"][i] == df3["HOME_TEAM_y"][i] else df3[f"AWAY_{qty}_y"][i] for i in range(len(df3))
+        ]
+        df3[f"AWAY_{qty}_y_NEW"] = [
+            df3[f"AWAY_{qty}_y"][i] if df3["AWAY_TEAM_x"][i] == df3["AWAY_TEAM_y"][i] else df3[f"HOME_{qty}_y"][i] for i in range(len(df3))
+        ]
+    df4 = df3.groupby([
+        "HOME_TEAM_x",
+        "AWAY_TEAM_x",
+        "RESULT_x",
+        "DATE_x"
+    ])[[
+        "HOME_PTS_y_NEW", 
+        "AWAY_PTS_y_NEW",
+        "HOME_GOALS_y_NEW",
+        "AWAY_GOALS_y_NEW"
+    ]].agg("sum").reset_index(drop = False)
+    df4[
+        ((df4["HOME_TEAM_x"] == "Arsenal") & (df4["AWAY_TEAM_x"] == "Man City")) |
+        ((df4["AWAY_TEAM_x"] == "Arsenal") & (df4["HOME_TEAM_x"] == "Man City"))
+    ].sort_values(by = "DATE_x")
+    df5 = df4[[
+        "HOME_TEAM_x",
+        "AWAY_TEAM_x",
+        "DATE_x",
+        "HOME_PTS_y_NEW",
+        "AWAY_PTS_y_NEW",
+        "HOME_GOALS_y_NEW",
+        "AWAY_GOALS_y_NEW"
+    ]].rename(columns = {
+        "HOME_TEAM_x": "HOME_TEAM",
+        "AWAY_TEAM_x": "AWAY_TEAM",
+        "DATE_x": "DATE",
+        "HOME_PTS_y_NEW": "H2H_HOME_TEAM_PTS",
+        "AWAY_PTS_y_NEW": "H2H_AWAY_TEAM_PTS",
+        "HOME_GOALS_y_NEW": "H2H_HOME_TEAM_GOALS",
+        "AWAY_GOALS_y_NEW": "H2H_AWAY_TEAM_GOALS"
+    })
+    df_out = pd.merge(
+        left = df,
+        right = df5,
+        on = [
+            "HOME_TEAM",
+            "AWAY_TEAM",
+            "DATE"
+        ],
+        how = "left"
+    )
+    df_out["H2H_HOME_TEAM_PTS"] = df_out["H2H_HOME_TEAM_PTS"].fillna(0)
+    df_out["H2H_AWAY_TEAM_PTS"] = df_out["H2H_AWAY_TEAM_PTS"].fillna(0)
+    df_out["H2H_HOME_TEAM_GOALS"] = df_out["H2H_HOME_TEAM_GOALS"].fillna(0)
+    df_out["H2H_AWAY_TEAM_GOALS"] = df_out["H2H_AWAY_TEAM_GOALS"].fillna(0)
+    return(df_out)
+
+
 # Clean up of data post feature engineering
 def clean_augmented_epl_data(df, refine = False):
     df["DIFF_HA_LAST_5_HOME_WINS"] = df["HOME_TEAM_LAST_5_HOME_WINS"] - df["AWAY_TEAM_LAST_5_HOME_WINS"]
@@ -552,6 +652,8 @@ def clean_augmented_epl_data(df, refine = False):
     df["DIFF_HA_GD_LAST_5"] = df["HOME_TEAM_GD_LAST_5"] - df["AWAY_TEAM_GD_LAST_5"]
     df["DIFF_HA_PTS_THIS_SEASON"] = df["HOME_TEAM_PTS"] - df["AWAY_TEAM_PTS"]
     df["DIFF_HA_CURRENT_POSITION"] = df["HOME_TEAM_POSITION"] - df["AWAY_TEAM_POSITION"]
+    df["DIFF_HA_H2H_PTS"] = df["H2H_HOME_TEAM_PTS"] - df["H2H_AWAY_TEAM_PTS"]
+    df["DIFF_HA_H2H_GOALS"] = df["H2H_HOME_TEAM_GOALS"] - df["H2H_AWAY_TEAM_GOALS"]
     df["TOT_GOALS"] = df["FTHG"] + df["FTAG"]
     if refine == True:
         df_final = df[[
@@ -602,6 +704,8 @@ def clean_augmented_epl_data(df, refine = False):
             "DIFF_HA_CURRENT_POSITION",
             "DIFF_HA_SHOTS_LAST_5",
             "DIFF_HA_SHOTS_ON_TARGET_LAST_5",
+            "DIFF_HA_H2H_PTS",
+            "DIFF_HA_H2H_GOALS",
             "HOME_TEAM_BIG_6_FLAG",
             "AWAY_TEAM_BIG_6_FLAG",
             "HOME_TEAM_PROMOTED_FROM_LAST_SEASON_FLAG",
@@ -715,7 +819,7 @@ def push_preproccessed_historical_data_to_db(df, connection_params, schema_name,
 
 # Execute the pipeline
 def run_etl_pipeline(to_csv = True, to_postgre_db = False):
-    df_raw = epl_feature_engineering_4()
+    df_raw = epl_feature_engineering_5()
     df = clean_augmented_epl_data(df = df_raw, refine = True)
     if to_csv == True:
         push_preproccessed_historical_data_to_csv(df = df, filename = "epl_data.csv")
@@ -733,4 +837,3 @@ def run_etl_pipeline(to_csv = True, to_postgre_db = False):
         )
     else:
         pass
-
