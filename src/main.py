@@ -17,7 +17,7 @@ warnings.filterwarnings("ignore", category = Warning)
 
 # Import libraries/modules
 from src.data_prep.etl import run_etl_pipeline
-from src.model.train import fetch_epl_data, train_and_save_standard_scaler, save_best_xgboost_model
+from src.model.train import fetch_epl_data, train_and_save_standard_scaler, transform_standard_scaler, train_and_save_pca ,save_best_xgboost_model
 from src.model.predict import xgboost_preds
 from src.config import X_COLS
 
@@ -29,12 +29,14 @@ def training_pipeline():
     df = fetch_epl_data()
     print("Running ML training pipeline...")
     train_and_save_standard_scaler(df = df, X_cols = X_COLS)
-    save_best_xgboost_model(df = df, X_cols = X_COLS)
+    X_scaled = transform_standard_scaler(df = df, X_cols = X_COLS)
+    train_and_save_pca(X_scaled = X_scaled)
+    save_best_xgboost_model(df = df, X_cols = X_COLS, pca = False)
 
 
 # Function which gives us the predicted result based on 
-def get_predictions(home_team, away_team):
-    out = xgboost_preds(home_team = home_team, away_team = away_team)
+def get_predictions(home_team, away_team, pca = False):
+    out = xgboost_preds(home_team = home_team, away_team = away_team, pca = pca)
     if out == 0:
         x = f"I predict the winner will be {away_team}."
     elif out == 1:
